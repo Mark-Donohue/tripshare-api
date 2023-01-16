@@ -1,5 +1,5 @@
 # TripShare API
-This is the back-end API application for TripShare. It is written using [Node](https://nodejs.org/en/) and [Express](https://expressjs.com/) and a [MongoDB](https://www.mongodb.com/) persistance layer.
+This is the back-end API application for TripShare. It is written using [Node](https://nodejs.org/en/) and [Express](https://expressjs.com/) with a [MongoDB](https://www.mongodb.com/) persistance layer.
 
 ## Running Locally
 To run TripShare API locally, please have [npm](https://docs.npmjs.com/about-npm) installed on your machine. Once installed, execute the following commands:
