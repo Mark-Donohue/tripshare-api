@@ -20,8 +20,10 @@ In order for the API to function properly, the following environment variables m
 | DB_PASSWORD    | The password of the MongoDB instance.                        |
 | DB_NAME        | The name of the MongoDB instance.                            |
 | DB_CLUSTER     | The cluster on which the MongoDB instance is running.        |
+| DB_OPTIONS     | MongoDB connection options.                                  |
 | GOOGLE_API_KEY | Key that authenticates and allows access to Google Maps API. |
 | JWT_KEY        | The private key for using JSON web tokens.                   |
+| API_PORT       | The port on which TripShare API will be exposed.             |
 
 ## Acknowledgment
 A big thank you to Maximilian Schwarzmüller and Manuel Lorenz for their instruction and MERN guide.

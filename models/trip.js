@@ -14,7 +14,7 @@ const tripSchema = new Schema({
     lat: { type: Number, required: true },
     lng: { type: Number, required: true },
   },
-  createUserId: { type: mongoose.Types.ObjectId, required: true, ref: 'User' },
+  createUserId: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
 });
 
 module.exports = mongoose.model("Trip", tripSchema);

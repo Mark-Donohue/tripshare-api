@@ -2,13 +2,13 @@ const express = require("express");
 const { check } = require("express-validator");
 
 const tripController = require("../controllers/trip-controller");
-const fileUpload = require("../util/file-upload");
-const tokenAuth = require("../util/token-auth");
+const upload = require("../util/upload");
+const token = require("../util/token");
 
 const router = express.Router();
 
 /**
- * Gets a single trip by a trip ID.
+ * Gets a single trip by a given ID.
  */
 router.get("/:tripId", tripController.getTripById);
 
@@ -17,15 +17,15 @@ router.get("/:tripId", tripController.getTripById);
  */
 router.get("/user/:userId", tripController.getTripsByUserId);
 
-/** Register token middelware for routes below. */
-router.use(tokenAuth);
+/** Register Token Middleware for Secure Routes. */
+router.use(token);
 
 /**
- * Create a single trip.
+ * Creates a single trip.
  */
 router.post(
   "/",
-  fileUpload.single("image"),
+  upload.single("image"),
   [
     check("title").notEmpty(),
     check("description").isLength({ min: 5 }),

@@ -1,5 +1,5 @@
 /**
- * Object that represents an HTTP error message.
+ * Model that represents an HTTP error message.
  */
 class HttpError extends Error {
   constructor(message, code) {

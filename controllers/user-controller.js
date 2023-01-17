@@ -4,7 +4,12 @@ const jwt = require("jsonwebtoken");
 
 const HttpError = require("../models/http-error");
 const User = require("../models/user");
-const { getInvalidInputError } = require("../util/util");
+const {
+  getSignUpError,
+  getSignInError,
+  getMalformedPayloadError,
+  getInvalidCredentialsError,
+} = require("../util/error");
 
 /**
  * Fetches all existing {@link User} objects.
@@ -26,29 +31,29 @@ const getUsers = async (req, res, next) => {
 const signUp = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(getInvalidInputError());
+    const error = getMalformedPayloadError();
+    return next(error);
   }
 
   const { firstName, lastName, email, password } = req.body;
+  const signUpError = getSignUpError();
 
   let existingUser;
   try {
     existingUser = await User.findOne({ email: email });
   } catch (err) {
-    return next(new HttpError("Sign up failed, please try again.", 500));
+    return next(signUpError);
   }
 
   if (existingUser) {
-    return next(
-      new HttpError(`User with email address '${email}' already exists.`, 400)
-    );
+    return next(new HttpError(`Email address already in use.`, 400));
   }
 
   let hashedPassword;
   try {
     hashedPassword = await bcrypt.hash(password, 12);
   } catch (err) {
-    return next(new HttpError("Sign up failed, please try again.", 500));
+    return next(signUpError);
   }
 
   const newUser = new User({
@@ -63,7 +68,7 @@ const signUp = async (req, res, next) => {
   try {
     await newUser.save();
   } catch (err) {
-    return next(new HttpError("Sign up failed, please try again.", 500));
+    return next(signUpError);
   }
 
   let token;
@@ -76,7 +81,7 @@ const signUp = async (req, res, next) => {
       }
     );
   } catch (err) {
-    return next(new HttpError("Sign up failed, please try again.", 500));
+    return next(signUpError);
   }
 
   res.status(201).json({ userId: newUser.id, token: token });
@@ -87,27 +92,29 @@ const signUp = async (req, res, next) => {
  */
 const signIn = async (req, res, next) => {
   const { email, password } = req.body;
+  const signInError = getSignInError();
+  const credentialsError = getInvalidCredentialsError();
 
   let existingUser;
   try {
     existingUser = await User.findOne({ email: email });
   } catch (err) {
-    return next(new HttpError("Sign in failed, please try again.", 500));
+    return next(signInError);
   }
 
   if (!existingUser) {
-    return next(new HttpError("Invalid credentials, please try again.", 401));
+    return next(credentialsError);
   }
 
   let isValidPassword = false;
   try {
     isValidPassword = await bcrypt.compare(password, existingUser.password);
   } catch (err) {
-    return next(new HttpError("Sign in failed, please try again.", 500));
+    return next(signInError);
   }
 
   if (!isValidPassword) {
-    return next(new HttpError("Invalid credentials, please try again.", 401));
+    return next(credentialsError);
   }
 
   let token;
@@ -120,7 +127,7 @@ const signIn = async (req, res, next) => {
       }
     );
   } catch (err) {
-    return next(new HttpError("Sign in failed, please try again.", 500));
+    return next(signInError);
   }
 
   res.json({ userId: existingUser.id, token: token });

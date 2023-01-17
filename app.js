@@ -9,6 +9,8 @@ const tripRoutes = require("./routes/trip-routes");
 const userRoutes = require("./routes/user-routes");
 const HttpError = require("./models/http-error");
 
+const API_PORT = process.env.API_PORT;
+
 const app = express();
 
 /** Register Parser */
@@ -55,14 +57,14 @@ app.use((error, req, res, next) => {
   });
 });
 
-/** Start Server */
+/** Start API */
 mongoose
   .connect(
-    `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_CLUSTER}.ibbrtqu.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
+    `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_CLUSTER}.ibbrtqu.mongodb.net/${process.env.DB_NAME}?${process.env.DB_OPTIONS}`
   )
   .then(() => {
-    app.listen(8080);
-    console.log("==> Server running on port 8080.");
+    app.listen(API_PORT);
+    console.log(`==> TripShare API running on port ${API_PORT}.`);
   })
   .catch((err) => {
     console.log("==> Failed to start server. Error: " + err);

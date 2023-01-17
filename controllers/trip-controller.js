@@ -5,13 +5,26 @@ const { validationResult } = require("express-validator");
 const HttpError = require("../models/http-error");
 const Trip = require("../models/trip");
 const User = require("../models/user");
-const { getInvalidInputError } = require("../util/util");
-const { getCoordinates } = require("../util/location");
+const {
+  getMalformedPayloadError,
+  getInternalTripFetchError,
+  getInternalTripCreateError,
+  getInternalTripUpdateError,
+} = require("../util/error");
+const { getCoordinates } = require("../util/geocoding");
 const { default: mongoose } = require("mongoose");
-const trip = require("../models/trip");
 
 /**
  * Fetches a single {@link Trip} by its given ID.
+ */
+
+/**
+ *
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
  */
 const getTripById = async (req, res, next) => {
   const tripId = req.params.tripId;
@@ -20,7 +33,8 @@ const getTripById = async (req, res, next) => {
   try {
     trip = await Trip.findById(tripId);
   } catch (err) {
-    return next(new HttpError("Failed to fetch trip, please try again.", 500));
+    const error = getInternalTripFetchError();
+    return next(error);
   }
 
   if (!trip) {
@@ -40,9 +54,8 @@ const getTripsByUserId = async (req, res, next) => {
   try {
     userWithTrips = await User.findById(userId).populate("trips");
   } catch (err) {
-    return next(
-      new HttpError("Failed to fetch trip(s), please try again.", 500)
-    );
+    const error = getInternalTripFetchError();
+    return next(error);
   }
 
   if (!userWithTrips) {
@@ -127,7 +140,10 @@ const updateTrip = async (req, res, next) => {
     return next(new HttpError("Failed to fetch trip, please try again.", 500));
   }
 
-  if (!tripToUpdate || tripToUpdate.createUserId.toString() !== req.userData.userId) {
+  if (
+    !tripToUpdate ||
+    tripToUpdate.createUserId.toString() !== req.userData.userId
+  ) {
     return next(createTripNotFoundError(tripId));
   }
 
@@ -177,7 +193,6 @@ const deleteTrip = async (req, res, next) => {
     return next(new HttpError("Failed to delete trip, please try again.", 500));
   }
 
-
   fs.unlink(tripImagePath, (err) => {
     if (err) {
       console.log(err);
@@ -192,7 +207,7 @@ const deleteTrip = async (req, res, next) => {
  * @param {Number} tripId The ID of the trip.
  * @returns {HttpError} The error message.
  */
-function createTripNotFoundError(tripId) {
+function getTripNotFoundError(tripId) {
   return new HttpError(`Trip not found for ID: ${tripId}`, 404);
 }
 

@@ -2,6 +2,12 @@ const jwt = require("jsonwebtoken");
 
 const HttpError = require("../models/http-error");
 
+/**
+ * Utility logic for handling authorization and tokens.
+ * @param {*} req The current request object.
+ * @param {*} res The current response object.
+ * @param {*} next The next middleware function in the request-response cycle.
+ */
 module.exports = (req, res, next) => {
   if (req.method === "OPTIONS") {
     return next();
@@ -21,6 +27,7 @@ module.exports = (req, res, next) => {
 
     next();
   } catch (err) {
-    return next(new HttpError("Unauthorized.", 401));
+    const error = new HttpError("Unauthorized.", 401);
+    return next(error);
   }
 };
