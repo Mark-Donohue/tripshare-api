@@ -14,6 +14,14 @@ const {
 /**
  * Fetches all existing {@link User} objects.
  */
+
+/**
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ * @returns 
+ */
 const getUsers = async (req, res, next) => {
   let users;
   try {
