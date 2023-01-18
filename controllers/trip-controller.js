@@ -5,26 +5,24 @@ const { validationResult } = require("express-validator");
 const HttpError = require("../models/http-error");
 const Trip = require("../models/trip");
 const User = require("../models/user");
-const {
-  getMalformedPayloadError,
-  getInternalTripFetchError,
-  getInternalTripCreateError,
-  getInternalTripUpdateError,
-} = require("../util/error");
 const { getCoordinates } = require("../util/geocoding");
 const { default: mongoose } = require("mongoose");
+const {
+  getMalformedPayloadError,
+  getTripNotFoundError,
+  getInternalTripError,
+} = require("../util/error");
+
+const VERB_FETCH = "fetch";
+const VERB_CREATE = "create";
+const VERB_UPDATE = "update";
+const VERB_DELETE = "delete";
 
 /**
  * Fetches a single {@link Trip} by its given ID.
- */
-
-/**
- *
- *
- * @param {*} req
- * @param {*} res
- * @param {*} next
- * @returns
+ * @param {*} req The current request object.
+ * @param {*} res The current response object.
+ * @param {*} next The next middleware function in the request-response cycle.
  */
 const getTripById = async (req, res, next) => {
   const tripId = req.params.tripId;
@@ -33,12 +31,13 @@ const getTripById = async (req, res, next) => {
   try {
     trip = await Trip.findById(tripId);
   } catch (err) {
-    const error = getInternalTripFetchError();
+    const error = getInternalTripError(VERB_FETCH);
     return next(error);
   }
 
   if (!trip) {
-    return next(createTripNotFoundError(tripId));
+    const error = getTripNotFoundError();
+    return next(error);
   }
 
   res.json(trip.toObject({ getters: true }));
@@ -46,6 +45,9 @@ const getTripById = async (req, res, next) => {
 
 /**
  * Fetches all trips by a given {@link User} ID.
+ * @param {*} req The current request object.
+ * @param {*} res The current response object.
+ * @param {*} next The next middleware function in the request-response cycle.
  */
 const getTripsByUserId = async (req, res, next) => {
   const userId = req.params.userId;
@@ -54,12 +56,13 @@ const getTripsByUserId = async (req, res, next) => {
   try {
     userWithTrips = await User.findById(userId).populate("trips");
   } catch (err) {
-    const error = getInternalTripFetchError();
+    const error = getInternalTripError(VERB_FETCH);
     return next(error);
   }
 
   if (!userWithTrips) {
-    return next(new HttpError("Trip(s) not found.", 404));
+    const error = getTripNotFoundError();
+    return next(error);
   }
 
   res.json(userWithTrips.trips.map((trip) => trip.toObject({ getters: true })));
@@ -67,25 +70,30 @@ const getTripsByUserId = async (req, res, next) => {
 
 /**
  * Creates a single {@link Trip} object.
+ * @param {*} req The current request object.
+ * @param {*} res The current response object.
+ * @param {*} next The next middleware function in the request-response cycle.
  */
 const createTrip = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(getInvalidInputError());
+    const error = getMalformedPayloadError();
+    return next(error);
   }
 
   const { title, description, address } = req.body;
   const createUserId = req.userData.userId;
+  const createTripError = getInternalTripError(VERB_CREATE);
 
   let user;
   try {
     user = await User.findById(createUserId);
   } catch (err) {
-    return next(new HttpError("Failed to create trip, please try again.", 500));
+    return next(createTripError);
   }
 
   if (!user) {
-    return next(new HttpError(`User with ID ${createUserId} not found.`, 404));
+    return next(new HttpError("User not found.", 404));
   }
 
   let coordinates;
@@ -115,7 +123,7 @@ const createTrip = async (req, res, next) => {
 
     await session.commitTransaction();
   } catch (err) {
-    return next(new HttpError("Failed to create trip, please try again.", 500));
+    return next(createTripError);
   }
 
   res.status(201).json(newTrip);
@@ -123,11 +131,15 @@ const createTrip = async (req, res, next) => {
 
 /**
  * Updates the title and description of a single {@link Trip} by a given ID.
+ * @param {*} req The current request object.
+ * @param {*} res The current response object.
+ * @param {*} next The next middleware function in the request-response cycle.
  */
 const updateTrip = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(getInvalidInputError());
+    const error = getMalformedPayloadError();
+    return next(error);
   }
 
   const tripId = req.params.tripId;
@@ -137,14 +149,16 @@ const updateTrip = async (req, res, next) => {
   try {
     tripToUpdate = await Trip.findById(tripId);
   } catch (err) {
-    return next(new HttpError("Failed to fetch trip, please try again.", 500));
+    const error = getInternalTripError(VERB_FETCH);
+    return next(error);
   }
 
   if (
     !tripToUpdate ||
     tripToUpdate.createUserId.toString() !== req.userData.userId
   ) {
-    return next(createTripNotFoundError(tripId));
+    const error = getTripNotFoundError();
+    return next(error);
   }
 
   tripToUpdate.title = title;
@@ -153,7 +167,8 @@ const updateTrip = async (req, res, next) => {
   try {
     await tripToUpdate.save();
   } catch (err) {
-    return next(new HttpError("Failed to update trip, please try again.", 500));
+    const error = getInternalTripError(VERB_UPDATE);
+    return next(error);
   }
 
   res.json(tripToUpdate.toObject({ getters: true }));
@@ -161,19 +176,24 @@ const updateTrip = async (req, res, next) => {
 
 /**
  * Deletes a single {@link Trip} by a given ID.
+ * @param {*} req The current request object.
+ * @param {*} res The current response object.
+ * @param {*} next The next middleware function in the request-response cycle.
  */
 const deleteTrip = async (req, res, next) => {
   const tripId = req.params.tripId;
+  const deleteTripError = getInternalTripError(VERB_DELETE);
 
   let tripToDelete;
   try {
     tripToDelete = await Trip.findById(tripId).populate("createUserId");
   } catch (err) {
-    return next(new HttpError("Failed to delete trip, please try again.", 500));
+    return next(deleteTripError);
   }
 
   if (!tripToDelete || tripToDelete.createUserId.id !== req.userData.userId) {
-    return next(createTripNotFoundError(tripId));
+    const error = getTripNotFoundError();
+    return next(error);
   }
 
   const tripImagePath = tripToDelete.image;
@@ -190,7 +210,7 @@ const deleteTrip = async (req, res, next) => {
 
     await session.commitTransaction();
   } catch (err) {
-    return next(new HttpError("Failed to delete trip, please try again.", 500));
+    return next(deleteTripError);
   }
 
   fs.unlink(tripImagePath, (err) => {
@@ -201,15 +221,6 @@ const deleteTrip = async (req, res, next) => {
 
   res.json({ message: "Trip deleted." });
 };
-
-/**
- * Generates an error message indicating that a {@link Trip} could not be found.
- * @param {Number} tripId The ID of the trip.
- * @returns {HttpError} The error message.
- */
-function getTripNotFoundError(tripId) {
-  return new HttpError(`Trip not found for ID: ${tripId}`, 404);
-}
 
 exports.getTripById = getTripById;
 exports.getTripsByUserId = getTripsByUserId;

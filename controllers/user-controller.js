@@ -13,14 +13,9 @@ const {
 
 /**
  * Fetches all existing {@link User} objects.
- */
-
-/**
- * 
- * @param {*} req 
- * @param {*} res 
- * @param {*} next 
- * @returns 
+ * @param {*} req The current request object.
+ * @param {*} res The current response object.
+ * @param {*} next The next middleware function in the request-response cycle.
  */
 const getUsers = async (req, res, next) => {
   let users;
@@ -35,6 +30,9 @@ const getUsers = async (req, res, next) => {
 
 /**
  * Creates a single {@link User} object.
+ * @param {*} req The current request object.
+ * @param {*} res The current response object.
+ * @param {*} next The next middleware function in the request-response cycle.
  */
 const signUp = async (req, res, next) => {
   const errors = validationResult(req);
@@ -54,7 +52,7 @@ const signUp = async (req, res, next) => {
   }
 
   if (existingUser) {
-    return next(new HttpError(`Email address already in use.`, 400));
+    return next(new HttpError("Email address already in use.", 400));
   }
 
   let hashedPassword;
@@ -97,6 +95,9 @@ const signUp = async (req, res, next) => {
 
 /**
  * Fetches a single {@link User} object.
+ * @param {*} req The current request object.
+ * @param {*} res The current response object.
+ * @param {*} next The next middleware function in the request-response cycle.
  */
 const signIn = async (req, res, next) => {
   const { email, password } = req.body;

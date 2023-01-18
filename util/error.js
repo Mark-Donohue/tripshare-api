@@ -18,19 +18,17 @@ function getMalformedPayloadError() {
   return new HttpError("Malformed payload body.", 400);
 }
 
-function getInternalTripFetchError() {
-  return new HttpError("Failed to fetch trip(s), please try again.", 500);
+function getTripNotFoundError() {
+  return new HttpError("Trip(s) not found.", 404);
 }
 
-function getInternalTripCreateError() {
-  return new HttpError("Failed to create trip, please try again.", 500);
-}
-
-function getInternalTripUpdateError() {
-  return new HttpError("Failed to update trip, please try again.", 500);
+function getInternalTripError(verb) {
+  return new HttpError(`Failed to ${verb} trip(s), please try again.`, 500);
 }
 
 exports.getSignUpError = getSignUpError;
 exports.getSignInError = getSignInError;
 exports.getInvalidCredentialsError = getInvalidCredentialsError;
 exports.getMalformedPayloadError = getMalformedPayloadError;
+exports.getTripNotFoundError = getTripNotFoundError;
+exports.getInternalTripError = getInternalTripError;
