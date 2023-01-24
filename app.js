@@ -9,7 +9,7 @@ const tripRoutes = require("./routes/trip-routes");
 const userRoutes = require("./routes/user-routes");
 const HttpError = require("./models/http-error");
 
-const API_PORT = process.env.API_PORT;
+const API_PORT = process.env.PORT;
 
 const app = express();
 
