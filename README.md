@@ -6,7 +6,7 @@ To run TripShare API locally, please have [npm](https://docs.npmjs.com/about-npm
 
 ```bash
 npm install
-npm start
+npm run dev
 ```
 
 If you would like to interact with TripShare API through a UI, please see the [TripShare UI](https://github.com/Mark-Donohue/tripshare-ui) project for instructions on how to set up and run a UI instance locally.
