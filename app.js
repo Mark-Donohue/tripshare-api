@@ -40,7 +40,7 @@ app.use((req, res, next) => {
 });
 
 /** Register Error Handler */
-app.use((error, req, res, next) => {
+app.use((err, req, res, next) => {
   if (req.file) {
     fs.unlink(req.file.path, (err) => {
       console.log(err);
@@ -48,12 +48,12 @@ app.use((error, req, res, next) => {
   }
 
   if (res.headerSent) {
-    return next(error);
+    return next(err);
   }
 
-  res.status(error.code || 500);
+  res.status(err.status || 500);
   res.json({
-    message: error.message || "An unknown error occured.",
+    message: err.message || "An unknown error occured.",
   });
 });
 
