@@ -17,7 +17,7 @@ const app = express();
 app.use(bodyParser.json());
 
 /** Register File Upload Access */
-app.use("/uploads/images", express.static(path.join("uploads", "images")));
+// app.use("/uploads/images", express.static(path.join("uploads", "images")));
 
 /** Set Global Response Headers */
 app.use((req, res, next) => {

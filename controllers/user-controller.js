@@ -1,15 +1,20 @@
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { GetObjectCommand } = require("@aws-sdk/client-s3");
 
 const HttpError = require("../models/http-error");
 const User = require("../models/user");
+const s3 = require("../util/s3-client");
 const {
   getSignUpError,
   getSignInError,
   getMalformedPayloadError,
   getInvalidCredentialsError,
 } = require("../util/error");
+
+const BUCKET_NAME = process.env.AWS_BUCKET_NAME;
 
 /**
  * Fetches all existing {@link User} objects.
@@ -23,6 +28,18 @@ const getUsers = async (req, res, next) => {
     users = await User.find({}, "-password");
   } catch (err) {
     return next(new HttpError("Failed to fetch users, please try again.", 500));
+  }
+
+  for (const user of users) {
+    const getObjectParams = {
+      Bucket: BUCKET_NAME,
+      Key: user.image,
+    };
+
+    const command = new GetObjectCommand(getObjectParams);
+    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+
+    user.imageUrl = url;
   }
 
   res.json(users.map((user) => user.toObject({ getters: true })));
@@ -42,6 +59,7 @@ const signUp = async (req, res, next) => {
   }
 
   const { firstName, lastName, email, password } = req.body;
+  const image = req.file.key;
   const signUpError = getSignUpError();
 
   let existingUser;
@@ -62,12 +80,25 @@ const signUp = async (req, res, next) => {
     return next(signUpError);
   }
 
+  // const getObjectParams = {
+  //   Bucket: BUCKET_NAME,
+  //   Key: image,
+  // };
+  // const command = new GetObjectCommand(getObjectParams);
+
+  // let url;
+  // try { 
+  //   url = await getSignedUrl(s3, command);
+  // } catch (err) {
+  //   return next(signUpError);
+  // }
+
   const newUser = new User({
     firstName,
     lastName,
     email,
     password: hashedPassword,
-    image: req.file.path,
+    image: req.file.key,
     trips: [],
   });
 
