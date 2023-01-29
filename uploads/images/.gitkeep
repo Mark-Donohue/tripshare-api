@@ -1,0 +1,2 @@
+# Git does not track empty directories in repositories. The purpose of this file is to force Git to track
+# the uploads/images directory, which is needed for storing User and Trip images.
