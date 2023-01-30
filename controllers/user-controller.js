@@ -30,6 +30,7 @@ const getUsers = async (req, res, next) => {
     return next(new HttpError("Failed to fetch users, please try again.", 500));
   }
 
+  // Generate and assign a publicly accessible URL to the user image in S3.
   for (const user of users) {
     const getObjectParams = {
       Bucket: BUCKET_NAME,
