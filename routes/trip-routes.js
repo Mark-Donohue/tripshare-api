@@ -2,7 +2,7 @@ const express = require("express");
 const { check } = require("express-validator");
 
 const tripController = require("../controllers/trip-controller");
-const upload = require("../util/upload");
+const upload = require("../util/file-upload");
 const token = require("../util/token");
 
 const router = express.Router();

@@ -1,7 +1,7 @@
 const { S3Client } = require("@aws-sdk/client-s3");
 
 /**
- * Utility logic for configuring S3 client.
+ * Utility logic for sending requests to AWS S3 bucket.
  */
 const s3 = new S3Client({
   credentials: {
@@ -11,4 +11,4 @@ const s3 = new S3Client({
   region: process.env.AWS_BUCKET_REGION,
 });
 
-module.exports = s3
+// export function uploadFile()

@@ -60,7 +60,6 @@ const signUp = async (req, res, next) => {
   }
 
   const { firstName, lastName, email, password } = req.body;
-  const image = req.file.key;
   const signUpError = getSignUpError();
 
   let existingUser;
@@ -71,7 +70,7 @@ const signUp = async (req, res, next) => {
   }
 
   if (existingUser) {
-    return next(new HttpError("Email address already in use.", 400));
+    return next(new HttpError("Email address is already in use.", 400));
   }
 
   let hashedPassword;
@@ -80,19 +79,6 @@ const signUp = async (req, res, next) => {
   } catch (err) {
     return next(signUpError);
   }
-
-  // const getObjectParams = {
-  //   Bucket: BUCKET_NAME,
-  //   Key: image,
-  // };
-  // const command = new GetObjectCommand(getObjectParams);
-
-  // let url;
-  // try { 
-  //   url = await getSignedUrl(s3, command);
-  // } catch (err) {
-  //   return next(signUpError);
-  // }
 
   const newUser = new User({
     firstName,
