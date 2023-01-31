@@ -1,7 +1,7 @@
 const { v4: uuidv4 } = require("uuid");
 const multer = require("multer");
 const multerS3 = require("multer-s3");
-const s3 = require("./s3-client");
+const s3Client = require("./s3-client");
 
 const MIME_TYPE_MAP = {
   "image/png": "png",
@@ -9,16 +9,14 @@ const MIME_TYPE_MAP = {
   "image/jpeg": "jpeg",
 };
 
-const BUCKET_NAME = process.env.AWS_BUCKET_NAME;
-
 /**
- * Utility logic for uploading files.
+ * Utility logic for handling file uploads.
  */
 const fileUpload = multer({
   limits: 500000,
   storage: multerS3({
-    s3: s3,
-    bucket: BUCKET_NAME,
+    s3: s3Client,
+    bucket: process.env.AWS_BUCKET_NAME,
     metadata: function (req, file, cb) {
       cb(null, { fieldName: file.fieldname });
     },

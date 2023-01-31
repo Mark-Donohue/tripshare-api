@@ -12,6 +12,7 @@ const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true, minLength: 8 },
   image: { type: String, required: false },
+  imageUrl: { type: String, required: false },
   trips: [{ type: mongoose.Types.ObjectId, required: true, ref: "Trip" }],
 });
 

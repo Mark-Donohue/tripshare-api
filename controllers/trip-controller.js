@@ -11,7 +11,8 @@ const {
   getMalformedPayloadError,
   getTripNotFoundError,
   getInternalTripError,
-} = require("../util/error");
+} = require("../util/errors");
+const { getImageUrl } = require("../util/s3-commands");
 
 const VERB_FETCH = "fetch";
 const VERB_CREATE = "create";
@@ -40,6 +41,8 @@ const getTripById = async (req, res, next) => {
     return next(error);
   }
 
+  trip.imageUrl = await getImageUrl(trip.image);
+
   res.json(trip.toObject({ getters: true }));
 };
 
@@ -63,6 +66,10 @@ const getTripsByUserId = async (req, res, next) => {
   if (!userWithTrips) {
     const error = getTripNotFoundError();
     return next(error);
+  }
+
+  for (const trip of userWithTrips.trips) {
+    trip.imageUrl = await getImageUrl(trip.image);
   }
 
   res.json(userWithTrips.trips.map((trip) => trip.toObject({ getters: true })));
@@ -106,7 +113,7 @@ const createTrip = async (req, res, next) => {
   const newTrip = new Trip({
     title,
     description,
-    image: req.file.path,
+    image: req.file.key,
     address,
     coordinates,
     createUserId,
@@ -196,8 +203,6 @@ const deleteTrip = async (req, res, next) => {
     return next(error);
   }
 
-  const tripImagePath = tripToDelete.image;
-
   try {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -213,11 +218,7 @@ const deleteTrip = async (req, res, next) => {
     return next(deleteTripError);
   }
 
-  fs.unlink(tripImagePath, (err) => {
-    if (err) {
-      console.log(err);
-    }
-  });
+  await deleteTrip(tripToDelete.image);
 
   res.json({ message: "Trip deleted." });
 };

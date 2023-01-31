@@ -1,20 +1,16 @@
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-const { GetObjectCommand } = require("@aws-sdk/client-s3");
 
 const HttpError = require("../models/http-error");
 const User = require("../models/user");
-const s3 = require("../util/s3-client");
 const {
   getSignUpError,
   getSignInError,
   getMalformedPayloadError,
   getInvalidCredentialsError,
-} = require("../util/error");
-
-const BUCKET_NAME = process.env.AWS_BUCKET_NAME;
+} = require("../util/errors");
+const { getImageUrl } = require("../util/s3-commands");
 
 /**
  * Fetches all existing {@link User} objects.
@@ -30,17 +26,8 @@ const getUsers = async (req, res, next) => {
     return next(new HttpError("Failed to fetch users, please try again.", 500));
   }
 
-  // Generate and assign a publicly accessible URL to the user image in S3.
   for (const user of users) {
-    const getObjectParams = {
-      Bucket: BUCKET_NAME,
-      Key: user.image,
-    };
-
-    const command = new GetObjectCommand(getObjectParams);
-    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
-
-    user.imageUrl = url;
+    user.imageUrl = await getImageUrl(user.image);
   }
 
   res.json(users.map((user) => user.toObject({ getters: true })));
