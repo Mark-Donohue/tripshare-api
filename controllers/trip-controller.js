@@ -12,7 +12,7 @@ const {
   getTripNotFoundError,
   getInternalTripError,
 } = require("../util/errors");
-const { getImageUrl } = require("../util/s3-commands");
+const { getImageUrl, deleteImage } = require("../util/s3-commands");
 
 const VERB_FETCH = "fetch";
 const VERB_CREATE = "create";
@@ -187,8 +187,7 @@ const updateTrip = async (req, res, next) => {
  * @param {*} res The current response object.
  * @param {*} next The next middleware function in the request-response cycle.
  */
-const deleteTrip = async (req, res, next) => {
-  const tripId = req.params.tripId;
+const deleteTrip = async (req, res, next) => {  const tripId = req.params.tripId;
   const deleteTripError = getInternalTripError(VERB_DELETE);
 
   let tripToDelete;
@@ -202,6 +201,9 @@ const deleteTrip = async (req, res, next) => {
     const error = getTripNotFoundError();
     return next(error);
   }
+
+  // Remove the trip image from S3
+  await deleteImage(tripToDelete.image);
 
   try {
     const session = await mongoose.startSession();
@@ -217,8 +219,6 @@ const deleteTrip = async (req, res, next) => {
   } catch (err) {
     return next(deleteTripError);
   }
-
-  await deleteTrip(tripToDelete.image);
 
   res.json({ message: "Trip deleted." });
 };

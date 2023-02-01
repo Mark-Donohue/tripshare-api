@@ -14,7 +14,7 @@ const BUCKET_NAME = process.env.AWS_BUCKET_NAME;
 async function getImageUrl(image) {
   const params = {
     Bucket: BUCKET_NAME,
-    Key: key,
+    Key: image,
   };
 
   const command = new GetObjectCommand(params);
@@ -36,7 +36,7 @@ async function getImageUrl(image) {
 async function deleteImage(image) {
   const params = {
     Bucket: BUCKET_NAME,
-    Key: key,
+    Key: image,
   };
 
   const command = new DeleteObjectCommand(params);
@@ -49,4 +49,4 @@ async function deleteImage(image) {
 }
 
 exports.getImageUrl = getImageUrl;
-exports.deleteImage = deleteImage
+exports.deleteImage = deleteImage;
