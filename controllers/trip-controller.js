@@ -187,7 +187,8 @@ const updateTrip = async (req, res, next) => {
  * @param {*} res The current response object.
  * @param {*} next The next middleware function in the request-response cycle.
  */
-const deleteTrip = async (req, res, next) => {  const tripId = req.params.tripId;
+const deleteTrip = async (req, res, next) => {
+  const tripId = req.params.tripId;
   const deleteTripError = getInternalTripError(VERB_DELETE);
 
   let tripToDelete;
@@ -202,7 +203,7 @@ const deleteTrip = async (req, res, next) => {  const tripId = req.params.tripId
     return next(error);
   }
 
-  // Remove the trip image from S3
+  // Remove the trip image from S3.
   await deleteImage(tripToDelete.image);
 
   try {
