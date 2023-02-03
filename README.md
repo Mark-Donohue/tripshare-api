@@ -1,7 +1,7 @@
 # TripShare API
 
-This is the back-end API application for TripShare. It is written using [Node](https://nodejs.org/en/) and [Express](https://expressjs.com/) with a [MongoDB](https://www.mongodb.com/) persistance layer. It also uses an AWS S3 bucket
-to store images of trips and users.
+This is the back-end API application for TripShare. It is written using [Node](https://nodejs.org/en/) and [Express](https://expressjs.com/) with a [MongoDB](https://www.mongodb.com/) persistance layer. It also integrates with an AWS S3 bucket to store images of trips and users.
+To view the production instance of TripShare, please vist https://tripshare-ui.web.app/.
 
 ## Running Locally
 
